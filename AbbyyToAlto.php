@@ -135,7 +135,7 @@ class AbbyyToAlto
         $printSpace->setAttributeNS(self::ALTO_NS, 'alto:HEIGHT', $height);
         $printSpace->setAttributeNS(self::ALTO_NS, 'alto:WIDTH', $width);
         
-        $this->_addTextBlocks($printSpace,$abbyyPageBlock); 
+        $this->_addTextBlocks($printSpace,$abbyyPage); 
     }
 
     /**
@@ -143,9 +143,9 @@ class AbbyyToAlto
      * @param DOMElement $printSpace ALTO PrintSpace element 
      * @param DOMElement $abbyyPageBLock AbbyyFinereader block element 
      */
-    protected function _addTextBlocks($printSpace,$abbyyPageBlock)
+    protected function _addTextBlocks($printSpace,$abbyyPage)
     {
-        $abbyyPars = $abbyyPageBlock->getElementsByTagName('par');
+        $abbyyPars = $abbyyPage->getElementsByTagName('par');
         for ($i = 0; $i < $abbyyPars->length; $i++) {
             $abbyyPar = $abbyyPars->item($i);
             $this->_textBlockCount++;
