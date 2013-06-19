@@ -197,9 +197,10 @@ class AbbyyToAlto
                 $altoIllustration->setAttributeNS(self::ALTO_NS, 'alto:HEIGHT', $height);
                 $altoIllustration->setAttributeNS(self::ALTO_NS, 'alto:WIDTH', $width);
                 
-                $this->_addTextBlocks($printSpace,$abbyyPage);
+                
             }
         }
+        $this->_addTextBlocks($printSpace,$abbyyPage);
     }
 
     /**
