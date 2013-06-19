@@ -135,7 +135,71 @@ class AbbyyToAlto
         $printSpace->setAttributeNS(self::ALTO_NS, 'alto:HEIGHT', $height);
         $printSpace->setAttributeNS(self::ALTO_NS, 'alto:WIDTH', $width);
         
-        $this->_addTextBlocks($printSpace,$abbyyPage); 
+        $this->_addIllustrations($printSpace,$abbyyPage); 
+    }
+
+    /**
+     * Add ALTO Illustration Elements
+     * @param DOMElement $printSpace ALTO PrintSpace element 
+     * @param DOMElement $abbyyPageBLock AbbyyFinereader block element 
+     */
+    protected function _addIllustrations($printSpace,$abbyyPage)
+    {
+        $abbyyBlocks = $abbyyPage->getElementsByTagName('block');
+
+      
+        for ($i = 0; $i < $abbyyBlocks->length; $i++) {
+            $abbyyBlock = $abbyyBlocks->item($i);
+            $abbyyBlockElement = $abbyyBlock->getAttribute('blockType');
+            if ( $abbyyBlockElement == 'Picture') {
+                $this->_IllustrationCount++;
+                
+                //<block blockType="Picture" blockName="" l="756" t="110" r="902" b="230">
+                //  <region>
+                //      <rect l="756" t="110" r="902" b="214">
+                //      </rect>
+                //      <rect l="826" t="214" r="882" b="230">
+                //      </rect>
+                //  </region>
+                //</block>
+
+                $l = null;
+                $t = null;
+                $r = null;
+                $b = null;
+                
+                for ($c = 0; $c < $abbyyBlock->getElementsByTagName('rect')->length; $c++) {
+                    if ($abbyyBlock->getElementsByTagName('rect')->item($c)->getAttribute('l') < $l || is_null($l) ) {
+                        $l = $abbyyBlock->getElementsByTagName('rect')->item($c)->getAttribute('l');
+                    }
+                    
+                    if ($abbyyBlock->getElementsByTagName('rect')->item($c)->getAttribute('t') < $t || is_null($t)) {
+                        $t = $abbyyBlock->getElementsByTagName('rect')->item($c)->getAttribute('t');
+                    }
+                    
+                    if ($abbyyBlock->getElementsByTagName('rect')->item($c)->getAttribute('r') > $r || is_null($r)) {
+                        $r = $abbyyBlock->getElementsByTagName('rect')->item($c)->getAttribute('r');
+                    }
+                    if ($abbyyBlock->getElementsByTagName('rect')->item($c)->getAttribute('b') > $b || is_null($b)) {
+                        $b = $abbyyBlock->getElementsByTagName('rect')->item($c)->getAttribute('b'); 
+                    }
+                }
+                $hpos = $l;
+                $vpos = $t;
+                $height = $b - $t;
+                $width  = $r - $l;
+                
+                $altoIllustration = $this->_altoDom->createElementNS(self::ALTO_NS, 'Illustration');
+                $printSpace->appendChild($altoIllustration);
+                $altoIllustration->setAttributeNS(self::ALTO_NS, 'alto:ID', "Illustration_{$this->_IllustrationCount}");
+                $altoIllustration->setAttributeNS(self::ALTO_NS, 'alto:HPOS', $hpos);
+                $altoIllustration->setAttributeNS(self::ALTO_NS, 'alto:VPOS', $vpos);
+                $altoIllustration->setAttributeNS(self::ALTO_NS, 'alto:HEIGHT', $height);
+                $altoIllustration->setAttributeNS(self::ALTO_NS, 'alto:WIDTH', $width);
+                
+                $this->_addTextBlocks($printSpace,$abbyyPage);
+            }
+        }
     }
 
     /**
@@ -200,25 +264,28 @@ class AbbyyToAlto
         foreach ($abbyyLines as $abbyyLine) {
             $this->_textLineCount++;
             $itemCount = $abbyyLine->getElementsByTagName('charParams')->length - 1;
-            $l = $abbyyLine->getElementsByTagName('charParams')->item(0)->getAttribute('l');
-            $t = $abbyyLine->getElementsByTagName('charParams')->item(0)->getAttribute('t');
-            $r = $abbyyLine->getElementsByTagName('charParams')->item($itemCount)->getAttribute('r');
-            $b = $abbyyLine->getElementsByTagName('charParams')->item($itemCount)->getAttribute('b');
+            if ( $itemCount >= 0 ) {
+                $l = $abbyyLine->getElementsByTagName('charParams')->item(0)->getAttribute('l');
+                $t = $abbyyLine->getElementsByTagName('charParams')->item(0)->getAttribute('t');
+                $r = $abbyyLine->getElementsByTagName('charParams')->item($itemCount)->getAttribute('r');
+                $b = $abbyyLine->getElementsByTagName('charParams')->item($itemCount)->getAttribute('b');
+                
+                $hpos = $l;
+                $vpos = $t;
+                $height = $b - $t;
+                $width  = $r - $l;
             
-            $hpos = $l;
-            $vpos = $t;
-            $height = $b - $t;
-            $width  = $r - $l;
-        
-            $altoTextLine = $this->_altoDom->createElementNS(self::ALTO_NS, 'TextLine');
-            $altoTextBlock->appendChild($altoTextLine);
-            $altoTextLine->setAttributeNS(self::ALTO_NS, 'alto:ID', "TextLine_{$this->_textLineCount}");
-            $altoTextLine->setAttributeNS(self::ALTO_NS, 'alto:HPOS', $hpos);
-            $altoTextLine->setAttributeNS(self::ALTO_NS, 'alto:VPOS', $vpos);
-            $altoTextLine->setAttributeNS(self::ALTO_NS, 'alto:HEIGHT', $height);
-            $altoTextLine->setAttributeNS(self::ALTO_NS, 'alto:WIDTH', $width);
-            
-            $this->_addStrings($altoTextLine, $abbyyLine);
+                $altoTextLine = $this->_altoDom->createElementNS(self::ALTO_NS, 'TextLine');
+                $altoTextBlock->appendChild($altoTextLine);
+                $altoTextLine->setAttributeNS(self::ALTO_NS, 'alto:ID', "TextLine_{$this->_textLineCount}");
+                $altoTextLine->setAttributeNS(self::ALTO_NS, 'alto:HPOS', $hpos);
+                $altoTextLine->setAttributeNS(self::ALTO_NS, 'alto:VPOS', $vpos);
+                $altoTextLine->setAttributeNS(self::ALTO_NS, 'alto:HEIGHT', $height);
+                $altoTextLine->setAttributeNS(self::ALTO_NS, 'alto:WIDTH', $width);
+                
+                $this->_addStrings($altoTextLine, $abbyyLine);
+            }
+
         }
     }
 
